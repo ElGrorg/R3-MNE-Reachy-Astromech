@@ -36,7 +36,6 @@ coverage.xml
 .idea/
 *.swp
 *.swo
-*.wav
 
 # Security
 *.key
