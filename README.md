@@ -1,8 +1,8 @@
 # Reachy Mini Astromech Droid
 
-Turn your Reachy Mini into a Star Wars-like astromech droid! This application combines local AI processing, expressive movements, and classic droid sounds to bring your robot to life.
+Turn your Reachy Mini into R3-MNE,a Star Wars-like astromech droid! This application combines local AI processing, expressive movements, and classic droid sounds to bring your robot to life.
 
-![Reachy Mini Dance](docs/assets/reachy_mini_dance.gif)
+![R3-MNE and R2-D2](docs/assets/reachy_and_r2.png)
 
 ## Features
 
@@ -44,36 +44,16 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-Install optional extras depending on the feature set you need:
-
-```bash
-# Wireless Reachy Mini support
-pip install -e .[reachy_mini_wireless]
-
-# Tooling for development workflows
-pip install -e .[dev]
-```
-
-Some wheels (e.g. PyTorch) are large and require compatible CUDA or CPU builds—make sure your platform matches the binaries pulled in by each extra.
-
-## Optional dependency groups
-
-| Extra | Purpose | Notes |
-|-------|---------|-------|
-| `reachy_mini_wireless` | Wireless Reachy Mini with GStreamer support. | Required for wireless versions of Reachy Mini, includes GStreamer dependencies.
-| `dev` | Developer tooling (`pytest`, `ruff`). | Add on top of either base or `all_vision` environments.
-
 ## Configuration
 
 1. Copy `.env.example` to `.env`.
-2. Fill in the required values, notably the OpenAI API key.
 
 ## Running the app
 
 Activate your virtual environment, ensure the Reachy Mini robot (or simulator) is reachable, then launch:
 
 ```bash
-reachy-mini-conversation-app
+r3-mne --gradio
 ```
 
 By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (required when running in simulation mode).
@@ -84,7 +64,7 @@ By default, the app runs in console mode for direct audio interaction. Use the `
 | `--gradio` | `False` | Launch the Gradio web UI. Without this flag, runs in console mode. Required when running in simulation mode. |
 | `--debug` | `False` | Enable verbose logging for troubleshooting. |
 
-
+<!-- 
 ### Examples
 - Run on hardware with MediaPipe face tracking:
 
@@ -96,8 +76,8 @@ By default, the app runs in console mode for direct audio interaction. Use the `
 
   ```bash
   reachy-mini-conversation-app --no-camera
-  ```
-
+  ``` -->
+<!-- 
 ## LLM tools exposed to the assistant
 
 | Tool | Action | Dependencies |
@@ -147,7 +127,7 @@ Custom tools must subclass `reachy_mini_conversation_app.tools.core_tools.Tool` 
 - Install the dev group extras: `uv sync --group dev` or `pip install -e .[dev]`.
 - Run formatting and linting: `ruff check .`.
 - Execute the test suite: `pytest`.
-- When iterating on robot motions, keep the control loop responsive => offload blocking work using the helpers in `tools.py`.
+- When iterating on robot motions, keep the control loop responsive => offload blocking work using the helpers in `tools.py`. -->
 
 ## License
 Apache 2.0

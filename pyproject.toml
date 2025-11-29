@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "reachy_mini_conversation_app"
+name = "R3-MNE"
 version = "0.1.0"
 authors = [{ name = "Pollen Robotics", email = "contact@pollen-robotics.com" }]
 description = ""
@@ -54,7 +54,7 @@ dev = [
 ]
 
 [project.scripts]
-reachy-mini-conversation-app = "reachy_mini_conversation_app.main:main"
+r3-mne = "reachy_mini_conversation_app.main:main"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
