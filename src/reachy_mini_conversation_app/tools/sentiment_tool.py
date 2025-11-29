@@ -95,29 +95,16 @@ class ReportSentimentTool(Tool):
                          logger.warning(f"Move {move_name} not found, skipping.")
                          move_name = None
 
-        # Determine sound file
         sound_path = None
         try:
-            # Construct path to sound directory
-            # Assuming structure: src/reachy_mini_conversation_app/../../emotion_audio/{category}_{length}/
-            # But based on list_dir earlier: emotion_audio/happy_long, happy_short, etc.
-            # Let's map sound_dir_base + intensity to directory name
-            
             sound_category_dir = None
             if sound_dir_base == "misc":
                 sound_category_dir = "misc"
             else:
                 suffix = "long" if intensity == "high" else "short"
                 sound_category_dir = f"{sound_dir_base}_{suffix}"
-
-            # Find the absolute path
-            # We need to find where emotion_audio is relative to this file
-            # This file is in src/reachy_mini_conversation_app/tools/
-            # emotion_audio is in the root of the repo (parent of src)
             
-            # Let's try to find the root based on known structure
             current_file = os.path.abspath(__file__)
-            # src/reachy_mini_conversation_app/tools/sentiment_tool.py -> up 4 levels to root
             repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file))))
             audio_root = os.path.join(repo_root, "emotion_audio")
             

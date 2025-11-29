@@ -10,9 +10,6 @@ from pathlib import Path
 from dataclasses import dataclass
 
 from reachy_mini import ReachyMini
-# Import config to ensure .env is loaded before reading REACHY_MINI_CUSTOM_PROFILE
-from reachy_mini_conversation_app.config import config  # noqa: F401
-
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +27,6 @@ if not logger.handlers:
 ALL_TOOLS: Dict[str, "Tool"] = {}
 ALL_TOOL_SPECS: List[Dict[str, Any]] = []
 _TOOLS_INITIALIZED = False
-
-
 
 def get_concrete_subclasses(base: type[Tool]) -> List[type[Tool]]:
     """Recursively find all concrete (non-abstract) subclasses of a base class."""
@@ -90,7 +85,7 @@ class Tool(abc.ABC):
 def _load_profile_tools() -> None:
     """Load tools based on profile's tools.txt file."""
     # Determine which profile to use
-    profile = config.REACHY_MINI_CUSTOM_PROFILE or "default"
+    profile = "default"
     logger.debug(f"Loading tools for profile: {profile}")
 
     # Build path to tools.txt
@@ -139,16 +134,16 @@ def _load_profile_tools() -> None:
             else:
                 # Missing import dependency within the tool file
                 profile_error = f"Missing dependency: {e}"
-                logger.error(f"❌ Failed to load profile-local tool '{tool_name}': {profile_error}")
-                logger.error(f"  Module path: {profile_tool_module}")
+                logger.error(f"Failed to load profile-local tool '{tool_name}': {profile_error}")
+                logger.error(f"Module path: {profile_tool_module}")
         except ImportError as e:
             profile_error = f"Import error: {e}"
-            logger.error(f"❌ Failed to load profile-local tool '{tool_name}': {profile_error}")
-            logger.error(f"  Module path: {profile_tool_module}")
+            logger.error(f"Failed to load profile-local tool '{tool_name}': {profile_error}")
+            logger.error(f"Module path: {profile_tool_module}")
         except Exception as e:
             profile_error = f"{type(e).__name__}: {e}"
-            logger.error(f"❌ Failed to load profile-local tool '{tool_name}': {profile_error}")
-            logger.error(f"  Module path: {profile_tool_module}")
+            logger.error(f"Failed to load profile-local tool '{tool_name}': {profile_error}")
+            logger.error(f"Module path: {profile_tool_module}")
 
         # Try shared tools library if not found in profile
         if not loaded:
@@ -160,14 +155,14 @@ def _load_profile_tools() -> None:
             except ModuleNotFoundError:
                 if profile_error:
                     # Already logged error from profile attempt
-                    logger.error(f"❌ Tool '{tool_name}' also not found in shared tools")
+                    logger.error(f"Tool '{tool_name}' also not found in shared tools")
                 else:
-                    logger.warning(f"⚠️ Tool '{tool_name}' not found in profile or shared tools")
+                    logger.warning(f"Tool '{tool_name}' not found in profile or shared tools")
             except ImportError as e:
-                logger.error(f"❌ Failed to load shared tool '{tool_name}': Import error: {e}")
+                logger.error(f"Failed to load shared tool '{tool_name}': Import error: {e}")
                 logger.error(f"  Module path: {shared_tool_module}")
             except Exception as e:
-                logger.error(f"❌ Failed to load shared tool '{tool_name}': {type(e).__name__}: {e}")
+                logger.error(f"Failed to load shared tool '{tool_name}': {type(e).__name__}: {e}")
                 logger.error(f"  Module path: {shared_tool_module}")
 
 

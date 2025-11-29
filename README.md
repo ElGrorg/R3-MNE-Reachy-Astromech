@@ -32,10 +32,6 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-## Configuration
-
-1. Copy `.env.example` to `.env`.
-
 ## Running the app
 
 To run this program, you will need to create two virtual environments, one for the Reachy Mini Daemon and one for the R3-MNE app. 
@@ -57,6 +53,8 @@ By default, the app runs in console mode for direct audio interaction. Use the `
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--gradio` | `False` | Launch the Gradio web UI. Without this flag, runs in console mode. Required when running in simulation mode. |
+| `--head-tracker` | `None` | Enable head tracking. Options: `yolo`, `none` |
+| `--no-camera` | `False` | Disable camera pipeline. |
 | `--debug` | `False` | Enable verbose logging for troubleshooting. |
 
 <!-- 
