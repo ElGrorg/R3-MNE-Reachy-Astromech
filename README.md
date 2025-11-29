@@ -1,6 +1,6 @@
 # Reachy Mini Astromech Droid
 
-Turn your Reachy Mini into R3-MNE,a Star Wars-like astromech droid! This application combines local AI processing, expressive movements, and classic droid sounds to bring your robot to life.
+Turn your Reachy Mini into R3-MNE, a Star Wars-like astromech droid! This application combines local AI processing, expressive movements, and classic droid sounds to bring your robot to life.
 
 ![R3-MNE and R2-D2](docs/assets/reachy_and_r2.png)
 
