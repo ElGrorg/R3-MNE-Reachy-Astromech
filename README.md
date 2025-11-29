@@ -50,7 +50,14 @@ pip install -e .
 
 ## Running the app
 
-Activate your virtual environment, ensure the Reachy Mini robot (or simulator) is reachable, then launch:
+To run this program, you will need to create two virtual environments, one for the Reachy Mini Daemon and one for the R3-MNE app. 
+In one terminal, navigate to the project root, activate the virtual environment, and run the Reachy Mini Daemon:
+
+```bash
+reachy-mini-daemon
+```
+
+In a second terminal, navigate to the project root, activate the virtual environment, and run:
 
 ```bash
 r3-mne --gradio
