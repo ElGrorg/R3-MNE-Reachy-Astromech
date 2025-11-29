@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import warnings
 import numpy as np
 from typing import Any, Tuple, List
 from numpy.typing import NDArray
@@ -109,7 +110,7 @@ class LocalAudioHandler(AsyncStreamHandler):
             if not self.speaking:
                 self.speaking = True
                 self.speech_start_time = current_time
-                logger.info(f"Speech detected! (RMS: {rms:.4f})")
+                logger.debug(f"Speech detected! (RMS: {rms:.4f})")
                 self.deps.movement_manager.set_listening(True)
                 if self.deps.head_wobbler:
                     self.deps.head_wobbler.reset()
@@ -125,7 +126,7 @@ class LocalAudioHandler(AsyncStreamHandler):
                 # Silence timeout reached, process the buffer
                 self.speaking = False
                 self.deps.movement_manager.set_listening(False)
-                logger.info("Speech stopped, processing...")
+                logger.debug("Speech stopped, processing...")
                 
                 duration = self.last_speech_time - self.speech_start_time
                 if duration >= MIN_SPEECH_DURATION:
@@ -134,7 +135,7 @@ class LocalAudioHandler(AsyncStreamHandler):
                     except Exception as e:
                         logger.error(f"Error in _process_audio: {e}", exc_info=True)
                 else:
-                    logger.info(f"Speech too short ({duration:.2f}s), ignoring.")
+                    logger.debug(f"Speech too short ({duration:.2f}s), ignoring.")
                 
                 self.audio_buffer = []
 
@@ -160,19 +161,21 @@ class LocalAudioHandler(AsyncStreamHandler):
         if np.max(np.abs(full_audio)) < 1e-5:
             return
         
-        logger.info(f"Transcribing {len(full_audio)/SAMPLE_RATE:.2f}s of audio...")
+        logger.debug(f"Transcribing {len(full_audio)/SAMPLE_RATE:.2f}s of audio...")
 
         # Transcribe (run in executor)
         loop = asyncio.get_running_loop()
         try:
-            segments, _ = await loop.run_in_executor(None, self.stt_model.transcribe, full_audio)
-            text = " ".join([segment.text for segment in segments]).strip()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                segments, _ = await loop.run_in_executor(None, self.stt_model.transcribe, full_audio)
+                text = " ".join([segment.text for segment in segments]).strip()
             
             if not text:
-                logger.info("No text transcribed.")
+                logger.debug("No text transcribed.")
                 return
                 
-            logger.info(f"Transcribed: {text}")
+            logger.debug(f"Transcribed: {text}")
             await self.output_queue.put(AdditionalOutputs({"role": "user", "content": text}))
             
             # 1. Check for keywords FIRST
@@ -194,7 +197,7 @@ class LocalAudioHandler(AsyncStreamHandler):
             # Map compound score to sentiment/intensity
             sentiment, intensity = self._map_sentiment(compound, scores)
             
-            logger.info(f"Sentiment: {sentiment} ({intensity}) - Scores: {scores}")
+            logger.debug(f"Sentiment: {sentiment} ({intensity}) - Scores: {scores}")
             
             # Trigger Tool
             result = await self.sentiment_tool(self.deps, sentiment=sentiment, intensity=intensity)
@@ -217,12 +220,12 @@ class LocalAudioHandler(AsyncStreamHandler):
         if "dance" in text_lower or "dancing" in text_lower:
             if "stop" in text_lower or "don't" in text_lower:
                 # Stop dance
-                logger.info("Keyword detected: STOP DANCE")
+                logger.debug("Keyword detected: STOP DANCE")
                 await self.stop_dance_tool(self.deps, dummy=True)
                 return "stopped dance"
             else:
                 # Start dance
-                logger.info("Keyword detected: DANCE")
+                logger.debug("Keyword detected: DANCE")
                 await self.dance_tool(self.deps, move="random")
                 return "started dance"
         
@@ -247,7 +250,7 @@ class LocalAudioHandler(AsyncStreamHandler):
         
         for keyword, emotion_move in emotions.items():
             if keyword in text_lower:
-                logger.info(f"Keyword detected: {keyword.upper()} -> {emotion_move}")
+                logger.debug(f"Keyword detected: {keyword.upper()} -> {emotion_move}")
                 await self.play_emotion_tool(self.deps, emotion=emotion_move)
                 return f"played emotion {emotion_move}"
                 

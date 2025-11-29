@@ -3908,51 +3908,7 @@ wheels = [
 ]
 
 [[package]]
-name = "reachy-mini"
-version = "1.1.0rc4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "aiohttp" },
-    { name = "asgiref" },
-    { name = "cv2-enumerate-cameras" },
-    { name = "eclipse-zenoh" },
-    { name = "fastapi" },
-    { name = "huggingface-hub" },
-    { name = "jinja2" },
-    { name = "libusb-package" },
-    { name = "log-throttling" },
-    { name = "numpy" },
-    { name = "opencv-python" },
-    { name = "pip" },
-    { name = "psutil" },
-    { name = "pyserial" },
-    { name = "pyusb" },
-    { name = "reachy-mini-motor-controller" },
-    { name = "reachy-mini-rust-kinematics" },
-    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "scipy", version = "1.16.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "sounddevice" },
-    { name = "soundfile" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/17/403231a6cfc2e324b1183c93324571745fce7c99d202b864bbcb80333446/reachy_mini-1.1.0rc4.tar.gz", hash = "sha256:f44c4682a0871ada10e6a4759c75a4f57bf6e325b8bcbe746dd6b50534d21916", size = 22004226, upload-time = "2025-11-13T09:57:45.128Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2e/69/cd61fb7ccdfe27666febf722454c08eba6377f6f0c54e9d013b2ea13ab34/reachy_mini-1.1.0rc4-py3-none-any.whl", hash = "sha256:ef4102bf71d32b99a37e2571679c9302e81a1b9f5d52de7f6c0bac2c09a4f1ba", size = 22052553, upload-time = "2025-11-13T09:57:42.141Z" },
-]
-
-[package.optional-dependencies]
-gstreamer = [
-    { name = "gst-signalling" },
-    { name = "pygobject" },
-]
-wireless-version = [
-    { name = "nmcli" },
-    { name = "pollen-bmi088-imu-library" },
-    { name = "semver" },
-]
-
-[[package]]
-name = "reachy-mini-conversation-app"
+name = "r3-mne"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -4041,6 +3997,50 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "ruff", specifier = "==0.12.0" },
     { name = "types-requests" },
+]
+
+[[package]]
+name = "reachy-mini"
+version = "1.1.0rc4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "asgiref" },
+    { name = "cv2-enumerate-cameras" },
+    { name = "eclipse-zenoh" },
+    { name = "fastapi" },
+    { name = "huggingface-hub" },
+    { name = "jinja2" },
+    { name = "libusb-package" },
+    { name = "log-throttling" },
+    { name = "numpy" },
+    { name = "opencv-python" },
+    { name = "pip" },
+    { name = "psutil" },
+    { name = "pyserial" },
+    { name = "pyusb" },
+    { name = "reachy-mini-motor-controller" },
+    { name = "reachy-mini-rust-kinematics" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.16.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "sounddevice" },
+    { name = "soundfile" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/17/403231a6cfc2e324b1183c93324571745fce7c99d202b864bbcb80333446/reachy_mini-1.1.0rc4.tar.gz", hash = "sha256:f44c4682a0871ada10e6a4759c75a4f57bf6e325b8bcbe746dd6b50534d21916", size = 22004226, upload-time = "2025-11-13T09:57:45.128Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2e/69/cd61fb7ccdfe27666febf722454c08eba6377f6f0c54e9d013b2ea13ab34/reachy_mini-1.1.0rc4-py3-none-any.whl", hash = "sha256:ef4102bf71d32b99a37e2571679c9302e81a1b9f5d52de7f6c0bac2c09a4f1ba", size = 22052553, upload-time = "2025-11-13T09:57:42.141Z" },
+]
+
+[package.optional-dependencies]
+gstreamer = [
+    { name = "gst-signalling" },
+    { name = "pygobject" },
+]
+wireless-version = [
+    { name = "nmcli" },
+    { name = "pollen-bmi088-imu-library" },
+    { name = "semver" },
 ]
 
 [[package]]

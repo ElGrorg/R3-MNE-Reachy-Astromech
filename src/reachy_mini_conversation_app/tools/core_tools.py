@@ -91,7 +91,7 @@ def _load_profile_tools() -> None:
     """Load tools based on profile's tools.txt file."""
     # Determine which profile to use
     profile = config.REACHY_MINI_CUSTOM_PROFILE or "default"
-    logger.info(f"Loading tools for profile: {profile}")
+    logger.debug(f"Loading tools for profile: {profile}")
 
     # Build path to tools.txt
     # Get the profile directory path
@@ -119,7 +119,7 @@ def _load_profile_tools() -> None:
             continue
         tool_names.append(line)
 
-    logger.info(f"Found {len(tool_names)} tools to load: {tool_names}")
+    logger.debug(f"Found {len(tool_names)} tools to load: {tool_names}")
 
     # Import each tool
     for tool_name in tool_names:
@@ -130,7 +130,7 @@ def _load_profile_tools() -> None:
         try:
             profile_tool_module = f"{PROFILES_DIRECTORY}.{profile}.{tool_name}"
             importlib.import_module(profile_tool_module)
-            logger.info(f"✓ Loaded profile-local tool: {tool_name}")
+            logger.debug(f"✓ Loaded profile-local tool: {tool_name}")
             loaded = True
         except ModuleNotFoundError as e:
             # Check if it's the tool module itself that's missing (expected) or a dependency
@@ -155,7 +155,7 @@ def _load_profile_tools() -> None:
             try:
                 shared_tool_module = f"reachy_mini_conversation_app.tools.{tool_name}"
                 importlib.import_module(shared_tool_module)
-                logger.info(f"✓ Loaded shared tool: {tool_name}")
+                logger.debug(f"✓ Loaded shared tool: {tool_name}")
                 loaded = True
             except ModuleNotFoundError:
                 if profile_error:
@@ -190,7 +190,7 @@ def _initialize_tools() -> None:
     ALL_TOOL_SPECS = [tool.spec() for tool in ALL_TOOLS.values()]
 
     for tool_name, tool in ALL_TOOLS.items():
-        logger.info(f"tool registered: {tool_name} - {tool.description}")
+        logger.debug(f"tool registered: {tool_name} - {tool.description}")
 
     _TOOLS_INITIALIZED = True
 
