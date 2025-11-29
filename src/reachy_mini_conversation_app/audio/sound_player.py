@@ -7,17 +7,28 @@ from threading import Thread
 logger = logging.getLogger(__name__)
 
 class SoundPlayer:
+    """Plays audio files using available system players (sounddevice, afplay, aplay)."""
+
     def __init__(self, sound_path, head_wobbler=None):
+        """
+        Initialize the SoundPlayer.
+
+        Args:
+            sound_path: Path to the audio file to play.
+            head_wobbler: Optional HeadWobbler instance to animate the robot during playback.
+        """
         self.sound_path = sound_path
         self.head_wobbler = head_wobbler
         self.thread = None
 
     def play(self):
+        """Start playback in a separate thread."""
         if self.thread is None or not self.thread.is_alive():
             self.thread = Thread(target=self._play)
             self.thread.start()
 
     def _play(self):
+        """Internal method to handle playback logic."""
         try:
             # Try using sounddevice (Cross-platform, reliable)
             try:

@@ -39,10 +39,10 @@ def main() -> None:
 
     robot = ReachyMini()
 
-    # Check if running in simulation mode without --gradio
     if robot.client.get_status()["simulation_enabled"] and not args.gradio:
         logger.error(
-            "Simulation mode requires Gradio interface. Please use --gradio flag when running in simulation mode.",
+            "Simulation mode requires Gradio interface. \
+            Please use --gradio flag when running in simulation mode.",
         )
         robot.client.disconnect()
         sys.exit(1)
@@ -95,7 +95,6 @@ def main() -> None:
     else:
         stream_manager = LocalStream(handler, robot)
 
-    # Each async service → its own thread/loop
     movement_manager.start()
     head_wobbler.start()
     if camera_worker:
@@ -119,7 +118,6 @@ def main() -> None:
         if vision_manager:
             vision_manager.stop()
 
-        # prevent connection to keep alive some threads
         robot.client.disconnect()
         logger.info("Shutdown complete.")
 

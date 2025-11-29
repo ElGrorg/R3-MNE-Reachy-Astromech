@@ -20,17 +20,23 @@ logger = logging.getLogger(__name__)
 
 # Constants
 SAMPLE_RATE = 16000  # Whisper expects 16kHz usually
-VAD_THRESHOLD = 0.006  # Energy threshold for speech detection (lowered again)
-SILENCE_DURATION = 1.0  # Seconds of silence to trigger processing
-MIN_SPEECH_DURATION = 0.40  # Minimum speech duration to process
+VAD_THRESHOLD = 0.006
+SILENCE_DURATION = 1.0
+MIN_SPEECH_DURATION = 0.40
 
 class LocalAudioHandler(AsyncStreamHandler):
     """A local handler for STT and Sentiment Analysis."""
 
     def __init__(self, deps: ToolDependencies):
+        """
+        Initialize the LocalAudioHandler.
+
+        Args:
+            deps: Dependencies required for the tools (robot, movement manager, etc.).
+        """
         super().__init__(
             expected_layout="mono",
-            output_sample_rate=24000, # Keep compatible with output if needed
+            output_sample_rate=24000,
             input_sample_rate=SAMPLE_RATE,
         )
         self.deps = deps
@@ -53,6 +59,12 @@ class LocalAudioHandler(AsyncStreamHandler):
         self.play_emotion_tool = PlayEmotion()
 
     def copy(self) -> "LocalAudioHandler":
+        """
+        Create a copy of the handler.
+
+        Returns:
+            A new instance of LocalAudioHandler with the same dependencies.
+        """
         logger.info("Creating copy of LocalAudioHandler")
         return LocalAudioHandler(self.deps)
 
@@ -68,8 +80,7 @@ class LocalAudioHandler(AsyncStreamHandler):
             logger.error(f"Failed to load models: {e}")
 
     def _load_models(self):
-        # Load Whisper (small or tiny for speed on CPU/Mac)
-        # compute_type="int8" is usually good for CPU
+        """Load the Whisper model and VADER sentiment analyzer."""
         self.stt_model = WhisperModel("tiny.en", device="cpu", compute_type="int8")
         self.sentiment_analyzer = SentimentIntensityAnalyzer()
 
@@ -146,7 +157,6 @@ class LocalAudioHandler(AsyncStreamHandler):
         if len(full_audio) < 1600: # < 0.1s
              return
 
-        # Lowered safety check to match VAD
         if np.max(np.abs(full_audio)) < 1e-5:
             return
         
@@ -175,9 +185,6 @@ class LocalAudioHandler(AsyncStreamHandler):
                         "metadata": {"action": keyword_result}
                     })
                 )
-                # If we triggered an action, we might still want to show sentiment, 
-                # but maybe not trigger the sentiment tool's movement/sound if it conflicts?
-                # For now, let's return early if a keyword action was taken to avoid conflict.
                 return
 
             # 2. Sentiment Analysis (Fallback)
@@ -220,15 +227,7 @@ class LocalAudioHandler(AsyncStreamHandler):
                 return "started dance"
         
         # Emotion keywords
-        # Map keywords to VALID move names from the library
-        # Available: fear1, dance3, boredom2, relief1, anxiety1, disgusted1, welcoming1, impatient1, sad1, helpful2, 
-        # resigned1, amazed1, thoughtful2, lost1, surprised1, serenity1, displeased1, incomprehensible2, irritated2, 
-        # yes_sad1, dance2, understanding1, contempt1, inquiring1, rage1, attentive2, no1, oops1, proud3, reprimand3, 
-        # reprimand2, scared1, no_excited1, come1, proud2, success1, enthusiastic2, laughing1, dying1, success2, 
-        # enthusiastic1, curious1, laughing2, tired1, reprimand1, proud1, grateful1, frustrated1, calming1, attentive1, 
-        # furious1, oops2, irritated1, yes1, confused1, understanding2, dance1, shy1, inquiring2, uncertain1, 
-        # thoughtful1, surprised2, displeased2, impatient2, welcoming2, indifferent1, sad2, helpful1, lonely1, 
-        # cheerful1, inquiring3, downcast1, sleep1, boredom1, uncomfortable1, go_away1, electric1, relief2, no_sad1
+        # Emotion keywords
         
         emotions = {
             "happy": "cheerful1", 
@@ -249,9 +248,6 @@ class LocalAudioHandler(AsyncStreamHandler):
         for keyword, emotion_move in emotions.items():
             if keyword in text_lower:
                 logger.info(f"Keyword detected: {keyword.upper()} -> {emotion_move}")
-                # PlayEmotion handles finding the move, but we should pass a valid name or prefix
-                # Passing "mad" might fail if only "mad_short" exists and PlayEmotion strict check fails
-                # Let's pass the mapped value which we know is likely valid or at least better
                 await self.play_emotion_tool(self.deps, emotion=emotion_move)
                 return f"played emotion {emotion_move}"
                 
@@ -259,7 +255,7 @@ class LocalAudioHandler(AsyncStreamHandler):
 
     def _map_sentiment(self, compound: float, scores: dict) -> Tuple[str, str]:
         """Map VADER scores to our sentiment categories."""
-        # Categories: happy, sad, angry, surprised, neutral, confused, excited, scared
+        """Map VADER scores to our sentiment categories."""
         
         intensity = "medium"
         if abs(compound) > 0.6:
@@ -270,10 +266,6 @@ class LocalAudioHandler(AsyncStreamHandler):
         if compound >= 0.5:
             return "happy", intensity
         elif compound <= -0.5:
-            # Distinguish sad vs angry?
-            # VADER doesn't distinguish well, but we can look at neg score?
-            # Let's keep it simple: negative is sad/angry.
-            # Maybe random or just default to sad for now.
             return "sad", intensity
         elif -0.1 < compound < 0.1:
             return "neutral", "low"
@@ -285,7 +277,14 @@ class LocalAudioHandler(AsyncStreamHandler):
                 return "confused", "low"
 
     async def emit(self) -> Tuple[int, NDArray[np.int16]] | AdditionalOutputs | None:
+        """
+        Emit processed output (audio or additional messages) from the queue.
+
+        Returns:
+            The next item from the output queue, or None.
+        """
         return await wait_for_item(self.output_queue)
 
     async def shutdown(self) -> None:
+        """Shutdown the handler and release resources."""
         pass

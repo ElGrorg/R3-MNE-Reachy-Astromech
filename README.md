@@ -1,26 +1,18 @@
-# Reachy Mini conversation app
+# Reachy Mini Astromech Droid
 
-Conversational app for the Reachy Mini robot combining OpenAI's realtime APIs, vision pipelines, and choreographed motion libraries.
+Turn your Reachy Mini into a Star Wars-like astromech droid! This application combines local AI processing, expressive movements, and classic droid sounds to bring your robot to life.
 
 ![Reachy Mini Dance](docs/assets/reachy_mini_dance.gif)
 
-## Architecture
+## Features
 
-The app follows a layered architecture connecting the user, AI services, and robot hardware:
-
-<p align="center">
-  <img src="docs/assets/conversation_app_arch.svg" alt="Architecture Diagram" width="600"/>
-</p>
-
-## Overview
-- Real-time audio conversation loop powered by the OpenAI realtime API and `fastrtc` for low-latency streaming.
-- Vision processing uses gpt-realtime by default (when camera tool is used), with optional local vision processing using SmolVLM2 model running on-device (CPU/GPU/MPS) via `--local-vision` flag.
-- Layered motion system queues primary moves (dances, emotions, goto poses, breathing) while blending speech-reactive wobble and face-tracking.
-- Async tool dispatch integrates robot motion, camera capture, and optional face-tracking capabilities through a Gradio web UI with live transcripts.
+- **Astromech Persona**: The robot communicates using pre-recorded "droid speak" audio files, mimicking the emotional beeps and whistles of an R2 unit.
+- **Local Speech-to-Text**: Uses `faster-whisper` for fast, private, and offline-capable speech recognition.
+- **Sentiment Analysis**: Analyzes your speech using `vaderSentiment` to understand your emotional tone (happy, sad, etc.) and responds with appropriate droid emotions.
+- **Expressive Motion**: A layered motion system blends dances, emotional gestures, and subtle "alive" movements like breathing and head wobble.
 
 ## Installation
 
-> [!IMPORTANT]
 > Windows support is currently experimental and has not been extensively tested. Use with caution.
 
 ### Using uv
@@ -32,21 +24,16 @@ source .venv/bin/activate
 uv sync
 ```
 
-> [!NOTE]
 > To reproduce the exact dependency set from this repo's `uv.lock`, run `uv sync` with `--locked` (or `--frozen`). This ensures `uv` installs directly from the lockfile without re-resolving or updating any versions.
 
 To include optional dependencies:
 ```
 uv sync --extra reachy_mini_wireless # For wireless Reachy Mini with GStreamer support
-uv sync --extra local_vision         # For local PyTorch/Transformers vision
-uv sync --extra yolo_vision          # For YOLO-based vision
-uv sync --extra mediapipe_vision     # For MediaPipe-based vision
-uv sync --extra all_vision           # For all vision features
 ```
 
 You can combine extras or include dev dependencies:
 ```
-uv sync --extra all_vision --group dev
+uv sync --group dev
 ```
 
 ### Using pip
@@ -63,12 +50,6 @@ Install optional extras depending on the feature set you need:
 # Wireless Reachy Mini support
 pip install -e .[reachy_mini_wireless]
 
-# Vision stacks (choose at least one if you plan to run face tracking)
-pip install -e .[local_vision]
-pip install -e .[yolo_vision]
-pip install -e .[mediapipe_vision]
-pip install -e .[all_vision]        # installs every vision extra
-
 # Tooling for development workflows
 pip install -e .[dev]
 ```
@@ -80,22 +61,12 @@ Some wheels (e.g. PyTorch) are large and require compatible CUDA or CPU buildsâ€
 | Extra | Purpose | Notes |
 |-------|---------|-------|
 | `reachy_mini_wireless` | Wireless Reachy Mini with GStreamer support. | Required for wireless versions of Reachy Mini, includes GStreamer dependencies.
-| `local_vision` | Run the local VLM (SmolVLM2) through PyTorch/Transformers. | GPU recommended; ensure compatible PyTorch builds for your platform.
-| `yolo_vision` | YOLOv8 tracking via `ultralytics` and `supervision`. | CPU friendly; supports the `--head-tracker yolo` option.
-| `mediapipe_vision` | Lightweight landmark tracking with MediaPipe. | Works on CPU; enables `--head-tracker mediapipe`.
-| `all_vision` | Convenience alias installing every vision extra. | Install when you want the flexibility to experiment with every provider.
 | `dev` | Developer tooling (`pytest`, `ruff`). | Add on top of either base or `all_vision` environments.
 
 ## Configuration
 
 1. Copy `.env.example` to `.env`.
 2. Fill in the required values, notably the OpenAI API key.
-
-| Variable | Description |
-|----------|-------------|
-| `HF_HOME` | Cache directory for local Hugging Face downloads (only used with `--local-vision` flag, defaults to `./cache`).
-| `HF_TOKEN` | Optional token for Hugging Face models (only used with `--local-vision` flag, falls back to `huggingface-cli login`).
-| `LOCAL_VISION_MODEL` | Hugging Face model path for local vision processing (only used with `--local-vision` flag, defaults to `HuggingFaceTB/SmolVLM2-2.2B-Instruct`).
 
 ## Running the app
 
@@ -105,15 +76,11 @@ Activate your virtual environment, ensure the Reachy Mini robot (or simulator) i
 reachy-mini-conversation-app
 ```
 
-By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (required when running in simulation mode). With a camera attached, vision is handled by the gpt-realtime model when the camera tool is used. For local vision processing, use the `--local-vision` flag to process frames periodically using the SmolVLM2 model. Additionally, you can enable face tracking via YOLO or MediaPipe pipelines depending on the extras you installed.
-
+By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (required when running in simulation mode).
 ### CLI options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--head-tracker {yolo,mediapipe}` | `None` | Select a face-tracking backend when a camera is available. YOLO is implemented locally, MediaPipe comes from the `reachy_mini_toolbox` package. Requires the matching optional extra. |
-| `--no-camera` | `False` | Run without camera capture or face tracking. |
-| `--local-vision` | `False` | Use local vision model (SmolVLM2) for periodic image processing instead of gpt-realtime vision. Requires `local_vision` extra to be installed. |
 | `--gradio` | `False` | Launch the Gradio web UI. Without this flag, runs in console mode. Required when running in simulation mode. |
 | `--debug` | `False` | Enable verbose logging for troubleshooting. |
 
@@ -123,12 +90,6 @@ By default, the app runs in console mode for direct audio interaction. Use the `
 
   ```bash
   reachy-mini-conversation-app --head-tracker mediapipe
-  ```
-
-- Run with local vision processing (requires `local_vision` extra):
-
-  ```bash
-  reachy-mini-conversation-app --local-vision
   ```
 
 - Disable the camera pipeline (audio-only conversation):
@@ -142,8 +103,6 @@ By default, the app runs in console mode for direct audio interaction. Use the `
 | Tool | Action | Dependencies |
 |------|--------|--------------|
 | `move_head` | Queue a head pose change (left/right/up/down/front). | Core install only. |
-| `camera` | Capture the latest camera frame and send it to gpt-realtime for vision analysis. | Requires camera worker; uses gpt-realtime vision by default. |
-| `head_tracking` | Enable or disable face-tracking offsets (not facial recognition - only detects and tracks face position). | Camera worker with configured head tracker. |
 | `dance` | Queue a dance from `reachy_mini_dances_library`. | Core install only. |
 | `stop_dance` | Clear queued dances. | Core install only. |
 | `play_emotion` | Play a recorded emotion clip via Hugging Face assets. | Needs `HF_TOKEN` for the recorded emotions dataset. |
@@ -175,7 +134,7 @@ play_emotion
 # My custom tool defined locally
 sweep_look
 ```
-Tools are resolved first from Python files in the profile folder (custom tools), then from the shared library `src/reachy_mini_conversation_app/tools/` (e.g., `dance`, `head_tracking`). 
+Tools are resolved first from Python files in the profile folder (custom tools), then from the shared library `src/reachy_mini_conversation_app/tools/` (e.g., `dance`). 
 
 ### Custom tools
 On top of built-in tools found in the shared library, you can implement custom tools specific to your profile by adding Python files in the profile folder. 
@@ -192,3 +151,16 @@ Custom tools must subclass `reachy_mini_conversation_app.tools.core_tools.Tool` 
 
 ## License
 Apache 2.0
+
+## Open Issues
+
+- **Windows Support**: Currently experimental. Users may encounter issues with audio drivers or dependency installation.
+- **Latency**: While local processing is fast, the full pipeline (STT -> Sentiment -> Action) can sometimes have a slight delay depending on hardware.
+- **Vision & Camera**: Camera integration, face tracking, and vision models (local or cloud) are implemented but currently **untested**. Use at your own risk.
+
+## Next Steps
+
+- **Expanded Droid Vocabulary**: Adding more diverse audio samples for a wider range of emotions.
+- **Interactive Games**: Implementing simple games (like "Red Light, Green Light") using the vision system.
+- **Improved Face Tracking**: Optimizing the local YOLO/MediaPipe trackers for smoother head movements.
+- **Custom Personalities**: Easier configuration to switch between different "droid personalities" (e.g., sassy, helpful, timid).
