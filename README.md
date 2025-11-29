@@ -56,7 +56,7 @@ Activate your virtual environment, ensure the Reachy Mini robot (or simulator) i
 r3-mne --gradio
 ```
 
-By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (required when running in simulation mode).
+By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (Currently required when running).
 ### CLI options
 
 | Option | Default | Description |
@@ -144,3 +144,4 @@ Apache 2.0
 - **Interactive Games**: Implementing simple games (like "Red Light, Green Light") using the vision system.
 - **Improved Face Tracking**: Optimizing the local YOLO/MediaPipe trackers for smoother head movements.
 - **Custom Personalities**: Easier configuration to switch between different "droid personalities" (e.g., sassy, helpful, timid).
+- **Patch Console Mode**: Currently, R3 cannot receive audio in console mode. It would be ideal if gradio was not necessary
