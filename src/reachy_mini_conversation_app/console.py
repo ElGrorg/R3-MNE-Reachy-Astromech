@@ -1,0 +1,128 @@
+"""Bidirectional local audio stream.
+
+records mic frames to the handler and plays handler audio frames to the speaker.
+"""
+
+import time
+import asyncio
+import logging
+from typing import List
+
+from fastrtc import AdditionalOutputs, audio_to_float32
+from scipy.signal import resample
+
+from reachy_mini import ReachyMini
+from reachy_mini_conversation_app.local_handler import LocalAudioHandler
+
+
+logger = logging.getLogger(__name__)
+
+
+class LocalStream:
+    """LocalStream using Reachy Mini's recorder/player."""
+
+    def __init__(self, handler: LocalAudioHandler, robot: ReachyMini):
+        """Initialize the stream with a local audio handler and pipelines."""
+        self.handler = handler
+        self._robot = robot
+        self._stop_event = asyncio.Event()
+        self._tasks: List[asyncio.Task[None]] = []
+        # Allow the handler to flush the player queue when appropriate.
+        self.handler._clear_queue = self.clear_audio_queue
+
+    def launch(self) -> None:
+        """Start the recorder/player and run the async processing loops."""
+        self._stop_event.clear()
+        self._robot.media.start_recording()
+        self._robot.media.start_playing()
+        time.sleep(1)  # give some time to the pipelines to start
+
+        async def runner() -> None:
+            self._tasks = [
+                asyncio.create_task(self.handler.start_up(), name="local-handler"),
+                asyncio.create_task(self.record_loop(), name="stream-record-loop"),
+                asyncio.create_task(self.play_loop(), name="stream-play-loop"),
+            ]
+            try:
+                await asyncio.gather(*self._tasks)
+            except asyncio.CancelledError:
+                logger.info("Tasks cancelled during shutdown")
+            finally:
+                # Ensure handler connection is closed
+                await self.handler.shutdown()
+
+        asyncio.run(runner())
+
+    def close(self) -> None:
+        """Stop the stream and underlying media pipelines.
+
+        This method:
+        - Sets the stop event to signal async loops to terminate
+        - Cancels all pending async tasks (openai-handler, record-loop, play-loop)
+        - Stops audio recording and playback
+        """
+        logger.info("Stopping LocalStream...")
+        self._stop_event.set()
+
+        # Cancel all running tasks
+        for task in self._tasks:
+            if not task.done():
+                task.cancel()
+
+        self._robot.media.stop_recording()
+        self._robot.media.stop_playing()
+
+    def clear_audio_queue(self) -> None:
+        """Flush the player's appsrc to drop any queued audio immediately."""
+        logger.info("User intervention: flushing player queue")
+        self.handler.output_queue = asyncio.Queue()
+
+    async def record_loop(self) -> None:
+        """Read mic frames from the recorder and forward them to the handler."""
+        logger.info("Starting receive loop")
+        while not self._stop_event.is_set():
+            audio_frame = self._robot.media.get_audio_sample()
+            if audio_frame is not None:
+                await self.handler.receive((self._robot.media.get_audio_samplerate(), audio_frame))
+
+            await asyncio.sleep(0.01)  # avoid busy loop
+
+    async def play_loop(self) -> None:
+        """Fetch outputs from the handler: log text and play audio frames."""
+        while not self._stop_event.is_set():
+            handler_output = await self.handler.emit()
+
+            if isinstance(handler_output, AdditionalOutputs):
+                for msg in handler_output.args:
+                    content = msg.get("content", "")
+                    if isinstance(content, str):
+                        logger.info(
+                            "role=%s content=%s",
+                            msg.get("role"),
+                            content if len(content) < 500 else content[:500] + "…",
+                        )
+
+            elif isinstance(handler_output, tuple):
+                input_sample_rate, audio_data = handler_output
+                output_sample_rate = self._robot.media.get_output_audio_samplerate()
+
+                # Reshape if needed
+                if audio_data.ndim == 2:
+                    audio_data = audio_data.squeeze()
+
+                # Cast if needed
+                audio_frame = audio_to_float32(audio_data)
+
+                # Resample if needed
+                if input_sample_rate != output_sample_rate:
+                    audio_frame = resample(
+                        audio_frame,
+                        int(len(audio_frame) * output_sample_rate / input_sample_rate),
+                    )
+
+                self._robot.media.push_audio_sample(audio_frame)
+
+            else:
+                logger.debug("Ignoring output type=%s", type(handler_output).__name__)
+
+            await asyncio.sleep(0)  # yield to event loop
