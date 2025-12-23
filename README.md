@@ -34,7 +34,15 @@ pip install -e .
 
 ## Running the app
 
-To run this program, you will need to create two virtual environments, one for the Reachy Mini Daemon and one for the R3-MNE app. 
+If you have the ***wireless version***, simply turn on the Reachy Mini and run:
+
+```bash
+r3-mne --gradio --no-camera
+```
+
+---
+
+If you have the ***lite version***, you will need to create two virtual environments, one for the Reachy Mini Daemon and one for the R3-MNE app. 
 In one terminal, navigate to the project root, activate the virtual environment, and run the Reachy Mini Daemon:
 
 ```bash
@@ -44,7 +52,7 @@ reachy-mini-daemon
 In a second terminal, navigate to the project root, activate the virtual environment, and run:
 
 ```bash
-r3-mne --gradio
+r3-mne --gradio --no-camera
 ```
 
 By default, the app runs in console mode for direct audio interaction. Use the `--gradio` flag to launch a web UI served locally at http://127.0.0.1:7860/ (Currently required when running).
